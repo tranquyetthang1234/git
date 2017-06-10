@@ -1,0 +1,412 @@
+#include<iostream>
+#include<string.h>
+#include<fstream>
+using namespace std;
+
+
+struct NhanVien
+{
+	char hoTen[33];
+	char chucVu[33];
+	float heSoLuong;
+	char ngaySinh[33];
+	NhanVien*tiep;
+};
+
+struct Danhsach
+{
+	NhanVien *dau, *cuoi;
+};
+
+void khoitao(Danhsach &a)
+{
+	a.dau = a.cuoi = NULL;
+}
+
+NhanVien* taoNhanVien()
+{
+	NhanVien *x = new NhanVien[1];
+	cout << "Nhap ho va ten Nhan vien: ";
+	cin.ignore(1);
+	cin.getline(x->hoTen, 33);
+
+	cout << "Nhap chuc vu Nhan vien: ";
+	cin.ignore(0);
+	cin.getline(x->chucVu, 33);
+
+	cout << "Nhap he so luong: ";
+	cin >> x->heSoLuong;
+
+	cout << "Nhap ngay sinh: ";
+	cin >> x->ngaySinh;
+
+	x->tiep = NULL;
+	return x;
+}
+// chen len dau danh sach
+void chen(Danhsach &a, NhanVien *x)
+{
+	if (a.dau == NULL)
+		a.dau = a.cuoi = x;
+	else if (x->hoTen < a.dau->hoTen)
+	{
+		x->tiep = a.dau;
+		a.dau = x;
+	}
+	else if (x->hoTen > a.cuoi->hoTen)
+	{
+		a.cuoi->tiep = x;
+		a.cuoi = x;
+	}
+	else
+	{
+		NhanVien *k = a.dau;
+		while (k != NULL && k->tiep->hoTen < x->hoTen)
+		{
+			k = k->tiep;
+		}
+		x->tiep = k->tiep;
+		k->tiep = x;
+
+	}
+}
+
+void nhap(Danhsach &a)
+{	
+	NhanVien *x;
+	int n, i;
+	cout << "Nhap so luong Nhan vien: ";
+	cin >> n;
+	cout << endl;
+	for (i = 0; i < n; i++)
+	{
+		cout << "Nhap thong tin cho nhan vien thu " << i + 1 << ": " << endl;
+		chen(a, x = taoNhanVien());
+	}
+}
+
+void luuFile(Danhsach a)
+{
+	NhanVien *x, *y;
+	x = a.dau;
+	fstream fs;
+	//mo file de luu du lieu nhap vao
+	fs.open("nhanVien.txt", ios::out);
+	fs << "DANH SACH CAC NHAN VIEN" << endl;
+	fs << "Chuc Vu\t\t\tHe So Luong\t\t\tNgaySinh\t\tHo va Ten" << endl;
+	while (x != NULL){
+		fs << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "/" << "\t\t" << x->hoTen << endl;
+		y = x;
+		x = x->tiep;
+		delete y;
+		cout << "Luu thanh cong file.";
+	}
+	fs.close();
+}
+
+void docFile(Danhsach a)
+{
+	NhanVien *x;
+	x = a.dau;
+	fstream fs;
+	// mo  file nhanVien.txt de doc du lieu
+	fs.open("nhanVien.txt", ios::in);
+	if (!fs)
+			cout << "Danh sach rong!" << endl;
+		//dung vong lap for de luu tru thong tin
+	else
+		{
+			while (x != NULL){
+				//doc du lieu tu file nhanVien.txt vao chuong trinh
+				fs >> x->chucVu >> x->heSoLuong >> x->ngaySinh >> x->hoTen;
+				cout << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "\t\t" << x->hoTen << endl;
+				x = x->tiep;
+				chen(a, x);
+			}
+		}
+	fs.close();
+}
+
+void xuat(Danhsach a)
+{
+	NhanVien *x;
+	x = a.dau;
+	if (x == NULL)
+		cout << "Danh sach rong!" << endl;
+	else
+	{
+		cout << "==================== Danh sach nhan vien ====================" << endl;
+		cout << "Chuc Vu\t\t\tHe So Luong\t\t\tNgaySinh\t\tHo va Ten" << endl;
+		while (x != NULL)
+		{
+			cout << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "\t\t" << x->hoTen << endl;
+			x = x->tiep;
+		}
+	}
+	cout << endl;
+}
+
+void hoanVi(float &a, float &b)
+{
+	float c = a;
+	a = b;
+	b = c;
+}
+
+//void hoanVi1(char p1[], char p2[])
+//{
+//	char p3[33];
+//	strcpy_s(p3, 33, p1);
+//	strcpy_s(p1, 33, p2);
+//	strcpy_s(p2, 33, p3);
+//}
+
+void sapXepHSL(Danhsach &l)
+{
+	NhanVien *i, *j;
+	for (i = l.dau; i != l.cuoi; i = i->tiep)
+	{
+		for (j = i->tiep; j != NULL; j = j->tiep)
+		{
+			if (i->heSoLuong > j->heSoLuong)
+			{
+				hoanVi1(i->hoTen, j->hoTen);
+				hoanVi1(i->chucVu, j->chucVu);
+				hoanVi(i->heSoLuong, j->heSoLuong);
+				hoanVi1(i->ngaySinh, j->ngaySinh);
+			}
+		}
+	}
+	xuat(l);
+}
+
+void timTen(Danhsach &a)
+{
+	NhanVien *x;
+	x = a.dau;
+	if (a.dau == NULL)
+		cout << "danh sach rong!" << endl;
+	else
+	{
+		char ten[33];
+		int dem = 0;
+		cout << "nhap ten nhan vien can tim: ";
+		cin.ignore(1);
+		cin.getline(ten, 33);
+		cout << "==================== Danh sach nhan vien tim duoc====================" << endl;
+		cout << "chuc vu\t\t\the so luong\t\t\tngaysinh\t\tho va ten" << endl;
+		while (x != NULL)
+		{
+			char tam[33], t[33];
+			int demk = 0, i, z = strlen(x->hoTen);
+			//tach ten
+			for (i = z - 1; 0 <= i; i--)
+			if (x->hoTen[i] != ' ')
+			{
+				demk++;
+				tam[z - i - 1] = x->hoTen[i];
+			}
+			else
+				break;
+
+			for (i = 0; i <= z; i++)
+			if (i < demk)
+				t[i] = tam[demk - i - 1];
+			else
+				t[i] = '\0';
+			if (strcmp(t, ten) == 0)
+			{
+				cout << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "\t\t" << x->hoTen << endl;
+				dem++;
+			}
+
+			if (strcmp(x->hoTen, ten) == 0)
+			{
+				cout << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "\t\t" << x->hoTen << endl;
+				dem++;
+			}
+			x = x->tiep;
+		}
+	}
+}
+
+void timChucVu(Danhsach &a)
+{
+	NhanVien *x;
+	x = a.dau;
+	if (a.dau == NULL)
+		cout << "danh sach rong!" << endl;
+	else
+	{
+		char cv[33];
+		int dem = 0;
+		cout << "nhap chuc vu nhan vien can tim: ";
+		cin.ignore(1);
+		cin.getline(cv, 33);
+		cout << "==================== danh sach nhan vien tim duoc====================" << endl;
+		cout << "chuc vu\t\t\the so luong\t\t\tngaysinh\t\tho va ten" << endl;
+
+		while (x != NULL)
+		{
+			if (strcmp(x->chucVu, cv) == 0)
+			{
+				cout << x->chucVu << "\t\t" << x->heSoLuong << "\t\t\t\t" << x->ngaySinh << "\t\t" << x->hoTen << endl;
+				dem++;
+			}
+			x = x->tiep;
+		}
+		if (dem == 0)
+			cout << "khong co nhan vien nao co chuc vu can tim!" << endl;
+	}
+}
+
+void xoaTen(Danhsach  &a)
+{
+	NhanVien *x;
+	x = a.dau;
+	if (a.dau == NULL)
+		cout << "Danh sach rong!" << endl;
+	else
+	{
+		NhanVien *y;
+		Danhsach b;
+		char xoa[33];
+		int dem = 0;
+		khoitao(b);
+
+		cout << "Nhap thong tin ten lien quan can xoa: ";
+		cin.ignore(1);
+		cin.getline(xoa, 33);
+		while (x != NULL)
+		{
+			if (x->tiep != NULL) {
+				if (strcmp(x->hoTen, xoa) == 0 && x == a.dau)
+				{
+					a.dau = x->tiep;
+					dem++;
+				}
+				if (strcmp(x->tiep->hoTen, xoa) == 0)
+				{
+					x->tiep = x->tiep->tiep;
+					dem++;
+				}
+			}
+
+			x = x->tiep;
+		}
+		if (dem == 0)
+			cout << "khong co nhan vien nao can xoa!" << endl;
+
+	}
+	xuat(a);
+}
+
+void menu(){
+	cout << " =============== Sap Xep =============           " << endl;
+	cout << " 1. Sap xep theo he so luong. " << endl;
+	cout << " 2. Sap xep theo ten nhan vien. " << endl;
+	cout << " 00. Thoat." << endl;
+}
+int main()
+{
+	Danhsach ds;
+	NhanVien nv;
+	khoitao(ds);
+	FILE* fs;
+	int s;
+LAP:
+	system("cls");
+	cout << "==================== CHUONG TRINH QUAN LY NHAN VIEN ====================" << endl;
+	cout << " Nhap 1 de nhap nhan vien." << endl;
+	cout << " Nhap 2 de luu du lieu nhan vien vao file." << endl;
+	cout << " Nhap 3 de hien thi danh sach." << endl;
+	cout << " Nhap 4 de sap xep." << endl;
+	cout << " Nhap 5 de tim ten nhan vien." << endl;
+	cout << " Nhap 6 de tim chuc vu nhan vien." << endl;
+	cout << " Nhap 7 de xoa nhan vien." << endl;
+	cout << " Nhap 0 de thoat khoi chuong trinh." << endl;
+
+	cin >> s;
+	switch (s)
+	{
+	case 1: system("cls");
+		nhap(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 2: system("cls");
+		luuFile(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 3: system("cls");
+		//docFile(ds);
+		xuat(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 4: system("cls");
+		int luachon;
+		char confirm;
+		do
+		{
+			system("cls");
+			menu();
+			cout << "\n Nhap lua chon cua ban: ";
+			cin >> luachon;
+			switch (luachon)
+			{
+			case 1:
+				system("cls");
+				sapXepHSL(ds);
+				break;
+			case 2: system("cls");
+				//sapXepTen(ds);
+				break;
+			case 00:
+				system("cls");
+				cout << " Quay lai. ";
+				goto LAP;
+				exit(1);
+			}
+			cout << endl;
+			cout << "\n nhan 0 de tiep tuc: ";
+			cin >> confirm;
+			goto LAP;
+			cout << endl;
+		}
+
+		while (confirm == '0');
+		return 0;
+		system("pause");
+		goto LAP;
+		exit(0);
+
+	case 5: system("cls");
+		xuat(ds);
+		timTen(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 6: system("cls");
+		xuat(ds);
+		timChucVu(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 7: system("cls");
+		xuat(ds);
+		xoaTen(ds);
+		system("pause");
+		goto LAP;
+		exit(0);
+	case 0: exit(0);
+	}
+	cout << endl;
+	system("pause");
+}
+
+
+
+
+
